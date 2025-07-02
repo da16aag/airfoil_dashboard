@@ -19,20 +19,23 @@ if 'last_click_processed' not in st.session_state:
     st.session_state.last_click_processed = None # To prevent re-adding same point on rerun
 if 'canvas_key_counter' not in st.session_state:
     st.session_state.canvas_key_counter = 0 # For forcing canvas reset
-# New flag to control point addition during history operations
+# New flag to control point addition during history operations and after saving
 if 'suppress_point_add' not in st.session_state:
     st.session_state.suppress_point_add = False
+if 'file_saved' not in st.session_state:
+    st.session_state.file_saved = False # Flag to indicate if file was just saved
 
 # --- Helper function to add current state to history ---
 def add_to_history():
-    # Only add to history if suppress_point_add is False
+    # Only add to history if suppress_point_add is False (should not be when adding points)
+    # This check is more of a safeguard. Normal point addition path already ensures this.
     if st.session_state.suppress_point_add:
         return
 
     # Remove any "future" states if we're not at the end of history
     if st.session_state.history_index < len(st.session_state.history) - 1:
         st.session_state.history = st.session_state.history[:st.session_state.history_index + 1]
-    
+
     current_points_copy = list(st.session_state.points)
     # Check if the current state is different from the last saved state
     if not st.session_state.history or current_points_copy != st.session_state.history[-1]:
@@ -62,11 +65,11 @@ def interpolate_airfoil_and_close(x, y, num_points=500, smoothness=0.0001):
     # The degree k must be <= m-1 where m is the number of data points.
     # For a cubic spline, k=3. Ensure k does not exceed number of points - 1.
     k_val = min(3, len(x) - 1)
-    
+
     if k_val < 1: # Cannot create a spline with less than 2 points for k=1, or 4 for k=3
         st.warning(f"Not enough points ({len(x)}) for a B-spline of degree {k_val}. Plotting direct lines.")
         return np.array(x), np.array(y)
-        
+
     tck, u = splprep([x, y], s=smoothness, k=k_val)
 
     # Generate new parameter values to create a high-resolution curve
@@ -182,7 +185,7 @@ def create_grid_image(width, height, x_min_val, x_max_val, y_min_val, y_max_val,
     if y_min_val <= 0 <= y_max_val:
         _, y_axis_py = convert_custom_to_pixel(0, 0, width, height, x_min_val, x_max_val, y_min_val, y_max_val)
         draw.line([(0, y_axis_py), (width, y_axis_py)], fill=axis_line_color, width=2)
-    
+
     # Draw Y-axis (where X=0)
     if x_min_val <= 0 <= x_max_val:
         x_axis_px, _ = convert_custom_to_pixel(0, 0, width, height, x_min_val, x_max_val, y_min_val, y_max_val)
@@ -219,7 +222,7 @@ def create_grid_image(width, height, x_min_val, x_max_val, y_min_val, y_max_val,
                 x_new_custom, y_new_custom = splev(np.linspace(0, 1, 500), tck)
             else: # Fallback to just drawing lines between points
                 x_new_custom, y_new_custom = x_coords_custom, y_coords_custom
-            
+
             spline_points_pixel = []
             for i in range(len(x_new_custom)):
                 px, py = convert_custom_to_pixel(x_new_custom[i], y_new_custom[i], width, height, x_min_val, x_max_val, y_min_val, y_max_val)
@@ -261,29 +264,29 @@ value = streamlit_image_coordinates(
 
 # --- Process and Display Coordinates ---
 st.subheader("Clicked Coordinates (in Custom Units):")
+# Only add points if not suppressed
 if value and not st.session_state.suppress_point_add:
     clicked_custom_x, clicked_custom_y = convert_pixel_to_custom(
         value['x'], value['y'], canvas_width, canvas_height,
         x_min, x_max, y_min, y_max
     )
-    
+
     current_click_tuple = (clicked_custom_x, clicked_custom_y)
 
     # Check if this click is genuinely new and hasn't been processed yet in this rerun
-    # This comparison needs to be robust against floating point inaccuracies
     if st.session_state.last_click_processed != current_click_tuple:
-        
+
         st.session_state.points.append({'x': clicked_custom_x, 'y': clicked_custom_y})
         st.session_state.last_click_processed = current_click_tuple
         add_to_history() # Add new state to history
+        st.session_state.file_saved = False # Reset file_saved flag if new points are added
         st.rerun() # Rerun to update the image with the new point
-else:
-    # Reset last_click_processed if no value (e.g., after a clear or initial load)
-    if not value:
-        st.session_state.last_click_processed = None
-    # Also, reset suppress_point_add once a new click would potentially happen
-    # This prevents buttons from being "sticky" in suppressing new points
-    st.session_state.suppress_point_add = False
+# The 'else' block for resetting last_click_processed should be simpler.
+# It should primarily concern itself with ensuring 'last_click_processed' is cleared
+# if there's no active click or if clicks are suppressed.
+elif not value: # If there's no current 'value' from the component, clear last_click_processed.
+    st.session_state.last_click_processed = None
+# No need for 'or st.session_state.suppress_point_add' here, as key increment handles clearing.
 
 
 if st.session_state.points:
@@ -295,29 +298,33 @@ else:
 # --- Undo/Redo/Clear Buttons ---
 st.markdown("---")
 st.subheader("Drawing Controls")
-col1, col2, col3 = st.columns(3)
+col1, col2, col3, col4 = st.columns(4) # Added a column for the save button
 
 with col1:
     if st.button("⏪ Undo", help="Go back to the previous step."):
-        st.session_state.suppress_point_add = True # Suppress point addition for this rerun
+        st.session_state.file_saved = False # Reset file_saved flag
+        st.session_state.suppress_point_add = False # Allow adding points again
+        st.session_state.last_click_processed = None # Clear any stale click
+        st.session_state.canvas_key_counter += 1 # Force reset of image coordinates component value
         if st.session_state.history_index > 0:
             st.session_state.history_index -= 1
             st.session_state.points = list(st.session_state.history[st.session_state.history_index])
-            st.rerun()
         else:
             st.warning("No more steps to undo.")
-            st.session_state.suppress_point_add = False # Allow adding points again
+        st.rerun() # Always rerun to update state and UI
 
 with col2:
     if st.button("⏩ Redo", help="Go forward to the next step."):
-        st.session_state.suppress_point_add = True # Suppress point addition for this rerun
+        st.session_state.file_saved = False # Reset file_saved flag
+        st.session_state.suppress_point_add = False # Allow adding points again
+        st.session_state.last_click_processed = None # Clear any stale click
+        st.session_state.canvas_key_counter += 1 # Force reset of image coordinates component value
         if st.session_state.history_index < len(st.session_state.history) - 1:
             st.session_state.history_index += 1
             st.session_state.points = list(st.session_state.history[st.session_state.history_index])
-            st.rerun()
         else:
             st.warning("No more steps to redo.")
-            st.session_state.suppress_point_add = False # Allow adding points again
+        st.rerun() # Always rerun to update state and UI
 
 with col3:
     if st.button("🗑️ Clear All Points", help="Removes all collected points and spline."):
@@ -326,9 +333,9 @@ with col3:
         st.session_state.history_index = 0
         st.session_state.last_click_processed = None # Clear last processed click
         st.session_state.canvas_key_counter += 1 # Increment key to force widget reset
-        st.session_state.suppress_point_add = True # Suppress point addition for this rerun
-        st.rerun()
-
+        st.session_state.file_saved = False # Reset file_saved flag
+        st.session_state.suppress_point_add = False # Allow adding points again
+        st.rerun() # Always rerun to update state and UI
 
 ## Interpolated Airfoil Plot
 
@@ -339,17 +346,13 @@ if len(st.session_state.points) >= 4:
     x_coords_input = np.array([p['x'] for p in st.session_state.points])
     y_coords_input = np.array([p['y'] for p in st.session_state.points])
 
+    # Generate interpolated points for display and potential saving
     try:
         x_interp, y_interp = interpolate_airfoil_and_close(
             x_coords_input, y_coords_input,
             num_points=num_points_interp,
             smoothness=smoothness_interp
         )
-        file_name = "airfoil_coordinates.txt"
-        with open(file_name, "w") as f:
-            for i in range(len(x_interp)):
-                f.write(f"{x_interp[i]:.6f}\t{y_interp[i]:.6f}\n") # Use tab for separation, 6 decimal places
-        st.success(f"Airfoil coordinates saved to {file_name}")
 
         fig, ax = plt.subplots(figsize=(10, 6))
         ax.plot(x_coords_input, y_coords_input, 'ro', label='Original Points')
@@ -361,10 +364,40 @@ if len(st.session_state.points) >= 4:
         ax.grid(True)
         ax.legend()
         st.pyplot(fig)
+
+        # Prepare the data content as a string for saving
+        output_data_string = ""
+        for i in range(len(x_interp)):
+            output_data_string += f"{x_interp[i]:.6f}\t{y_interp[i]:.6f}\n"
+
+        with col4: # Put save button in the new column
+            if st.button("💾 Save Coordinates", help="Save the interpolated airfoil coordinates to a text file."):
+                file_name = "airfoil_coordinates.txt"
+                try:
+                    with open(file_name, "w") as f:
+                        f.write(output_data_string)
+                    st.success(f"Airfoil coordinates saved to **{file_name}**")
+                    st.session_state.file_saved = True # Set flag after saving
+                    st.session_state.suppress_point_add = True # Suppress further clicks after saving
+                    st.session_state.last_click_processed = None # Clear any stale click when entering save mode
+                    st.session_state.canvas_key_counter += 1 # Force reset of image coordinates component value
+                    st.rerun() # Rerun to show success message and disable drawing
+                except IOError as e:
+                    st.error(f"Error saving file: {e}")
+            # This 'elif' block is for displaying the info message when file_saved is True
+            elif st.session_state.file_saved:
+                st.info("File saved. Clear, Undo, or Redo to enable drawing again.")
+
     except Exception as e:
         st.error(f"Error generating interpolated airfoil plot: {e}. Try adjusting smoothness or adding more points.")
 else:
     st.warning("Please click at least **4** points on the canvas to generate a smooth interpolated airfoil plot.")
+    # Ensure suppress_point_add is False if not enough points to plot/save
+    if len(st.session_state.points) < 4 and st.session_state.file_saved:
+        st.session_state.file_saved = False # Reset if points drop below threshold after a save
+        st.session_state.suppress_point_add = False # Allow drawing again
+        st.session_state.last_click_processed = None # Clear stale click if re-enabling drawing
+
 
 st.markdown(
     """
