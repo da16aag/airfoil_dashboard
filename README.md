@@ -6,7 +6,8 @@ A comprehensive 2D airfoil analysis tool that combines interactive geometry crea
 
 - **Interactive Airfoil Design**: Create custom 2D airfoil shapes by clicking points on an X-Y grid
 - **B-spline Interpolation**: Smooth airfoil curves generated using B-spline functions
-- **Automated Mesh Generation**: Integrated mesh creation pipeline using TriMesh and SnappyHexMesh
+- **Geometry Creation**: using TriMesh
+- **Automated Mesh Generation**: Integrated mesh creation pipeline using SnappyHexMesh
 - **CFD Simulation**: Real-time OpenFOAM incompressible fluid simulations
 - **Visualization**: Pressure contour plots and velocity vector field visualization
 - **Validated Results**: Simulation accuracy validated against standard airfoils and circular geometries
