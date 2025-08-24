@@ -1,0 +1,90 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  12                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      controlDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+application     foamRun;
+
+solver          incompressibleFluid;
+
+startFrom       startTime;
+
+startTime       0;
+
+stopAt          endTime;
+
+endTime         500;
+
+deltaT          1;
+
+writeControl    timeStep;
+
+writeInterval   20;
+
+purgeWrite      0;
+
+writeFormat     ascii;
+
+writePrecision  6;
+
+writeCompression off;
+
+timeFormat      general;
+
+timePrecision   6;
+
+runTimeModifiable true;
+
+functions
+{
+	forceCoeffs1
+	{
+	    type            forceCoeffs;
+        libs ( "libforces.so" );
+        writeControl   timeStep;
+        writeInterval  1;
+        patches         (airfoil);
+        rho             rhoInf;
+        log             true;
+        rhoInf          1.2;
+        liftDir         (0 1 0);
+        dragDir         (1 0 0);
+        CofR            (0.25 0 0);
+        pitchAxis       (0 0 1);
+        magUInf         6;
+        lRef            1;
+        Aref            0.01;
+	}
+
+	//residuals
+    //{
+    //   type            residuals;
+    //    functionObjectLibs ( "libutilityFunctionObjects.so" );
+    //    enabled         true;
+    //    writeControl    timeStep;
+    //    writeInterval   1;
+    //    fields          (p U k omega);
+    //}
+
+	yPlus1
+	{
+	type yPlus;
+	libs ( "libfieldFunctionObjects.so" );
+        writeControl   timeStep;
+        writeInterval  500;
+	}
+};
+
+
+// ************************************************************************* //

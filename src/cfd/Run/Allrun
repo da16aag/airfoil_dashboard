@@ -1,0 +1,9 @@
+#!/bin/sh
+#phanquocthien.org
+
+extrudeMesh
+rm -f 0/*
+cp 0.org/* 0/
+foamRun -solver incompressibleFluid
+
+foamToVTK

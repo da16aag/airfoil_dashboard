@@ -1,0 +1,17 @@
+#!/bin/sh
+
+blockMesh
+
+surfaceFeatures
+
+snappyHexMesh -overwrite
+
+
+
+checkMesh
+
+foamToVTK
+sed -i '/front/,/}/s/type            patch;/type            empty;/' constant/polyMesh/boundary
+sed -i '/back/,/}/s/type            patch;/type            empty;/' constant/polyMesh/boundary
+
+
