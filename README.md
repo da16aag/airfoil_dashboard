@@ -11,7 +11,6 @@ A comprehensive 2D airfoil analysis tool that combines interactive geometry crea
 - **CFD Simulation**: Real-time OpenFOAM incompressible fluid simulations
 - **Visualization**: Pressure contour plots and velocity vector field visualization
 - **Validated Results**: Simulation accuracy validated against standard airfoils and circular geometries
-- **History Management**: Save and reload previous airfoil designs and simulations
 
 ## 🏗️ Architecture
 
