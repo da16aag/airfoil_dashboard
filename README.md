@@ -55,7 +55,7 @@ A comprehensive 2D airfoil analysis tool that combines interactive geometry crea
 
 1. **Geometry Creation**: Click points on the 2D grid to define airfoil shape
 2. **B-spline Processing**: Application automatically interpolates smooth curves
-3. **Mesh Generation**: TriMesh creates initial mesh, converted to STL format
+3. **Geometry Generation**: TriMesh creates initial mesh, converted to STL format
 4. **OpenFOAM Setup**: SnappyHexMesh generates computational mesh
 5. **CFD Simulation**: Incompressible fluid simulation executed
 6. **Visualization**: Results displayed as pressure contours and velocity vectors
