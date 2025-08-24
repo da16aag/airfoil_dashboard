@@ -32,6 +32,9 @@ A comprehensive 2D airfoil analysis tool that combines interactive geometry crea
 
 ### Prerequisites
 - Docker installed on your system
+  ```bash
+   docker pull da16aag/myairfoil_app:latest
+   ```
 
 ### Running the Application
 
@@ -76,7 +79,6 @@ Modify fluid properties and simulation settings in:
 The simulation results have been validated against:
 - NACA standard airfoil profiles
 - Circular cylinder flow (known analytical solutions)
-- Published experimental data
 
 ## 🗂️ File Structure Details
 
@@ -108,7 +110,7 @@ The simulation results have been validated against:
 ## 📈 Output Data
 
 Simulation outputs are automatically saved in:
-- `cfd/Run/` - OpenFOAM solution fields
+- `cfd/Run/` - OpenFOAM solution fields as usual for OpenFOAM
 - Pressure coefficient data
 - Velocity magnitude fields
 - Mesh quality metrics
@@ -119,7 +121,7 @@ Feel free to submit issues, fork the repository, and create pull requests for an
 
 ## 📝 License
 
-[Add your license information here]
+MIT License
 
 ## 🆘 Support
 
