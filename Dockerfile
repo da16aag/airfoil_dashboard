@@ -24,7 +24,7 @@ COPY requirements_dev.txt ./
 
 # Install Python dependencies
 RUN pip3 install --no-cache-dir -r requirements_dev.txt
-
+RUN pip install --no-cache-dir imageio[ffmpeg]
 # Copy the rest of the code
 COPY . .
 
@@ -42,6 +42,9 @@ headless = true\n\
 enableCORS = false\n\
 port = 8501\n\
 " > ~/.streamlit/config.toml
+
+
+ENTRYPOINT ["/bin/bash", "-c", "source /home/openfoam/OpenFOAM-12/etc/bashrc && exec bash"]
 
 # Comment out or remove these lines to prevent Streamlit from starting automatically
 # ENTRYPOINT ["streamlit", "run", "streamlit_interface.py"]

@@ -3,6 +3,7 @@ from scipy.interpolate import splprep, splev
 import streamlit as st
 from shapely.geometry import LineString, Polygon
 import pyvista as pv
+pv.start_xvfb()
 import os
 import imageio
 
