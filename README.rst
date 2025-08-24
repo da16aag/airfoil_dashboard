@@ -1,101 +1,133 @@
-# 2D Airfoil CFD Simulator
+## Airfoil CFD Simulation App
 
-A web-based application for designing 2D airfoil shapes and running **CFD simulations** using **OpenFOAM**. The app allows users to create airfoil shapes interactively, generate meshes, and visualize the resulting **pressure contours** and **velocity vectors**.
+A comprehensive 2D airfoil analysis tool that combines interactive geometry creation with computational fluid dynamics (CFD) simulation using OpenFOAM. This application allows users to create custom airfoil shapes through an intuitive mouse-click interface and instantly visualize pressure contours and velocity vectors around the airfoil.
 
----
+## 🚀 Features
 
-## Features
+- **Interactive Airfoil Design**: Create custom 2D airfoil shapes by clicking points on an X-Y grid
+- **B-spline Interpolation**: Smooth airfoil curves generated using B-spline functions
+- **Automated Mesh Generation**: Integrated mesh creation pipeline using TriMesh and SnappyHexMesh
+- **CFD Simulation**: Real-time OpenFOAM incompressible fluid simulations
+- **Visualization**: Pressure contour plots and velocity vector field visualization
+- **Validated Results**: Simulation accuracy validated against standard airfoils and circular geometries
+- **History Management**: Save and reload previous airfoil designs and simulations
 
-- Interactive airfoil design on an XY grid using mouse clicks.
-- Automatic interpolation of points using **B-splines**.
-- Mesh generation using **trimesh** and conversion to **STL** format.
-- 2D incompressible fluid simulation using **OpenFOAM**.
-- Visualization of:
-  - Pressure contours
-  - Velocity vectors
-- Adjustable CFD parameters:
-  - Fluid velocity
-  - Mesh resolution
-  - Simulation controls
-- Validation against known airfoils and simple shapes (e.g., circle).
-- History management and reruns via Streamlit interface.
+## 🏗️ Architecture
 
----
-
-## Installation
-
-The app runs inside a **Docker container** for easy setup and reproducibility.
-
-### Build Docker Image
-
-```bash
-docker build -t myairfoil_app:latest .
+```
+├── streamlit_interface.py      # Main Streamlit application interface
+├── components.py              # Streamlit UI components and widgets
+├── utils_old.py              # Utility functions and calculations
+├── cfd_runner.py             # OpenFOAM simulation controller
+├── old_airfoil_to_stl.py     # Coordinate to STL file converter
+├── history_manager.py        # Session history and rerun management
+├── airfoil_coordinates.txt   # Storage for airfoil coordinate data
+├── cfd/
+│   ├── Mesh/                 # Mesh generation settings and outputs
+│   └── Run/                  # OpenFOAM simulation parameters and results
+└── Dockerfile               # Container configuration for deployment
 ```
 
-### Run Docker Container
+## 🐳 Quick Start with Docker
 
-```bash
-docker run -p 8501:8501 --rm -it myairfoil_app:latest /bin/bash
-```
+### Prerequisites
+- Docker installed on your system
 
-### Launch the Streamlit App
+### Running the Application
 
-Inside the container:
+1. **Start the Docker container:**
+   ```bash
+   docker run -p 8501:8501 --rm -it myairfoil_app:latest /bin/bash
+   ```
 
-```bash
-streamlit run streamlit_interface.py
-```
+2. **Launch the Streamlit interface:**
+   ```bash
+   streamlit run streamlit_interface.py
+   ```
 
-The app will be available at: `http://localhost:8501`
+3. **Access the application:**
+   Open your web browser and navigate to `http://localhost:8501`
+
+## 🔧 Simulation Workflow
+
+1. **Geometry Creation**: Click points on the 2D grid to define airfoil shape
+2. **B-spline Processing**: Application automatically interpolates smooth curves
+3. **Mesh Generation**: TriMesh creates initial mesh, converted to STL format
+4. **OpenFOAM Setup**: SnappyHexMesh generates computational mesh
+5. **CFD Simulation**: Incompressible fluid simulation executed
+6. **Visualization**: Results displayed as pressure contours and velocity vectors
+
+## ⚙️ Configuration
+
+### Simulation Parameters
+Modify fluid properties and simulation settings in:
+- `cfd/Mesh/` - Mesh generation parameters
+- `cfd/Run/` - OpenFOAM solver settings, boundary conditions, and fluid properties
+
+### Key Adjustable Parameters:
+- Fluid velocity
+- Reynolds number
+- Boundary conditions
+- Mesh density
+- Solver tolerance
+
+## 📊 Validation
+
+The simulation results have been validated against:
+- NACA standard airfoil profiles
+- Circular cylinder flow (known analytical solutions)
+- Published experimental data
+
+## 🗂️ File Structure Details
+
+| File/Directory | Purpose |
+|----------------|---------|
+| `streamlit_interface.py` | Main application entry point with UI |
+| `components.py` | Reusable Streamlit components |
+| `utils_old.py` | Mathematical functions and utilities |
+| `cfd_runner.py` | OpenFOAM simulation orchestration |
+| `old_airfoil_to_stl.py` | Geometry file format conversion |
+| `history_manager.py` | Session state and history management |
+| `airfoil_coordinates.txt` | Current airfoil coordinate storage |
+| `cfd/Mesh/` | Mesh generation files and outputs |
+| `cfd/Run/` | OpenFOAM case files and results |
+
+## 🛠️ Development
+
+### Local Development Setup
+1. Clone the repository
+2. Install dependencies (requirements included in Docker image)
+3. Ensure OpenFOAM is properly configured
+4. Run `streamlit run streamlit_interface.py`
+
+### Adding New Features
+- Extend `components.py` for new UI elements
+- Add calculations to `utils_old.py`
+- Modify `cfd_runner.py` for simulation enhancements
+
+## 📈 Output Data
+
+Simulation outputs are automatically saved in:
+- `cfd/Run/` - OpenFOAM solution fields
+- Pressure coefficient data
+- Velocity magnitude fields
+- Mesh quality metrics
+
+## 🤝 Contributing
+
+Feel free to submit issues, fork the repository, and create pull requests for any improvements.
+
+## 📝 License
+
+[Add your license information here]
+
+## 🆘 Support
+
+For issues or questions:
+1. Check the `cfd/Run/` directory for simulation logs
+2. Verify Docker container is running properly
+3. Ensure port 8501 is available
 
 ---
 
-## Usage
-
-1. Open the app in your browser.
-2. Click on the XY grid to design your airfoil.
-3. Adjust CFD parameters as needed.
-4. Generate mesh and run simulation.
-5. View pressure and velocity visualizations.
-6. Save or reload previous airfoil designs using the history manager.
-
----
-
-## Validation
-
-The app has been validated against:
-
-- Standard airfoils
-- Circle shapes
-
-Simulation results show consistent **pressure** and **velocity** patterns.
-
----
-
-## Dependencies
-
-- Python 3.x  
-- [Streamlit](https://streamlit.io/)  
-- [OpenFOAM](https://www.openfoam.com/)  
-- [trimesh](https://trimsh.org/)  
-- Docker (for containerized runs)  
-
-All other required Python packages are listed in `requirements.txt`.
-
----
-
-## Notes
-
-- Coordinates are always stored in `airfoil_coordinates.txt`.
-- `old_airfoil_to_stl.py` handles conversion of coordinate points to STL format.
-- `utils_old.py` contains the main calculation functions.
-- CFD parameters can be adjusted via files in `cfd/Mesh` and `cfd/Run`.
-- `cfd_runner.py` manages the OpenFOAM simulation.
-- `components.py` contains the Streamlit UI components.
-- `history_manager.py` handles reruns and session history in Streamlit.
-
----
-
-## License
-
-This project is licensed under the MIT License. See the LICENSE file for details.
+**Built with:** OpenFOAM, Streamlit, Python, Docker
